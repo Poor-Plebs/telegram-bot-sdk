@@ -1,0 +1,8 @@
+/.idea
+/.vscode
+/cache/
+/clover.xml
+/coverage
+/phpstan.neon
+/phpunit.xml
+/vendor

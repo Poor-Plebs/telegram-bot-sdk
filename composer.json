@@ -1,0 +1,84 @@
+{
+    "name": "poor-plebs/package-template",
+    "description": "Put a short one or two sentence description of the package.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "PoorPlebs\\PackageTemplate\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PoorPlebs\\PackageTemplate\\Tests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "John Doe",
+            "email": "john.doe@example.com"
+        }
+    ],
+    "archive": {
+        "exclude": [
+            "/.editorconfig",
+            "/.git",
+            "/.gitattributes",
+            "/.github",
+            "/.gitignore",
+            "/.php-cs-fixer.dist.php",
+            "/cache",
+            "/CHANGELOG.md",
+            "/composer.lock",
+            "/phpstan.neon.dist",
+            "/phpunit.xml.dist",
+            "/tests"
+        ]
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        },
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require": {
+        "php": "^8.4.0"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.92.5",
+        "pestphp/pest": "^4.3.1",
+        "pestphp/pest-plugin-arch": "^4.0",
+        "pestphp/pest-plugin-type-coverage": "^4.0.3",
+        "phpstan/phpstan": "^2.1.33",
+        "phpstan/phpstan-deprecation-rules": "^2.0.3",
+        "phpstan/phpstan-strict-rules": "^2.0.7",
+        "roave/security-advisories": "dev-latest"
+    },
+    "scripts": {
+        "all": [
+            "composer lint",
+            "composer csf",
+            "composer static",
+            "composer test"
+        ],
+        "ci": [
+            "composer lint",
+            "composer cs",
+            "composer static",
+            "composer coverage"
+        ],
+        "lint": "XDEBUG_MODE=off find . -not -path './vendor/*' -type f -name '*.php' -print0 | xargs -0 -n1 -P$(nproc) php -l -n | (! grep -v \"No syntax errors detected\" )",
+        "cs": "XDEBUG_MODE=off vendor/bin/php-cs-fixer fix --dry-run --verbose --ansi",
+        "csf": "XDEBUG_MODE=off vendor/bin/php-cs-fixer fix --verbose --ansi",
+        "static": "XDEBUG_MODE=off vendor/bin/phpstan --ansi --no-progress --memory-limit=4G analyse",
+        "test": "XDEBUG_MODE=off vendor/bin/pest --parallel --no-coverage",
+        "coverage": "XDEBUG_MODE=coverage vendor/bin/pest --parallel --coverage --min=80",
+        "coverage-html": "XDEBUG_MODE=coverage vendor/bin/pest --parallel --coverage --coverage-html=coverage --min=80",
+        "coverage-clover": "XDEBUG_MODE=coverage vendor/bin/pest --parallel --coverage --coverage-clover=clover.xml --log-junit=junit.xml --min=80",
+        "type-coverage": "XDEBUG_MODE=off vendor/bin/pest --type-coverage --min=80"
+    }
+}
