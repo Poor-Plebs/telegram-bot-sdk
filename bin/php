@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+IMAGE_NAME="telegram-bot-sdk-php:local"
+
+# If already inside container, use the real PHP binary directly.
+if [ -f /.dockerenv ]; then
+    exec /usr/local/bin/php "$@"
+fi
+
+cd "${PROJECT_DIR}"
+
+if ! docker image inspect "${IMAGE_NAME}" >/dev/null 2>&1; then
+    docker build -t "${IMAGE_NAME}" -f Dockerfile .
+fi
+
+mkdir -p cache/composer/files
+
+docker run --rm \
+    --user "$(id -u):$(id -g)" \
+    --volume "${PROJECT_DIR}:/app" \
+    --workdir /app \
+    -e COMPOSER_HOME=/app/cache/composer \
+    -e COMPOSER_CACHE_DIR=/app/cache/composer/files \
+    "${IMAGE_NAME}" \
+    /app/bin/php "$@"

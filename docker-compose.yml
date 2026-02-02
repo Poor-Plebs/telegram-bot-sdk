@@ -1,0 +1,10 @@
+services:
+  php:
+    image: telegram-bot-sdk-php:local
+    working_dir: /app
+    volumes:
+      - ./:/app
+    user: "${UID:-1000}:${GID:-1000}"
+    environment:
+      COMPOSER_HOME: /app/cache/composer
+      COMPOSER_CACHE_DIR: /app/cache/composer/files

@@ -20,10 +20,10 @@ The format is based on [Keep a Changelog][1], and this project adheres to
 
 ### Added
 
-- Initial version of the `poor-plebs/package-template`.
+- Initial version of the `poor-plebs/telegram-bot-sdk`.
 
 [1]: https://keepachangelog.com/en/1.1.0/
 [2]: https://semver.org/spec/v2.0.0.html
 
-[Unreleased]: https://github.com/Poor-Plebs/package-template/compare/1.0.0...HEAD
-[1.0.0]: https://github.com/Poor-Plebs/package-template/releases/1.0.0
+[Unreleased]: https://github.com/Poor-Plebs/telegram-bot-sdk/compare/1.0.0...HEAD
+[1.0.0]: https://github.com/Poor-Plebs/telegram-bot-sdk/releases/1.0.0

@@ -1,13 +1,14 @@
-# Agent instructions for poor-plebs/package-template
+# Agent instructions for poor-plebs/telegram-bot-sdk
 
 ## Project Overview
 
-This is a framework-agnostic PHP package template designed for building reusable PHP libraries. It provides a modern development environment with strict coding standards, comprehensive testing, and automated quality checks.
+This is a framework-agnostic PHP SDK for Telegram Bot API integration. It uses strict coding standards, comprehensive testing, and automated quality checks.
 
 ## Directory Structure
 
 ```text
-├── src/                  # Source code (PSR-4: PoorPlebs\PackageTemplate)
+├── src/                  # Source code (PSR-4: PoorPlebs\TelegramBotSdk)
+├── docs/                 # Session memory docs (dated markdown files)
 ├── tests/                # Test files (Pest PHP)
 │   ├── Pest.php          # Pest configuration
 │   ├── ArchTest.php      # Architectural tests
@@ -17,6 +18,16 @@ This is a framework-agnostic PHP package template designed for building reusable
 ├── .github/              # GitHub workflows and config
 └── *.dist files          # Distribution config files
 ```
+
+## Docs Memory System
+
+Use `docs/` as persistent project memory for major work and investigations.
+
+- Files MUST be Markdown (`.md`)
+- File names MUST follow: `yyyy-mm-dd_[descriptive_file_name].md`
+- File names should be explicit enough that a folder listing clearly shows what work was done
+- Major features, migrations, deep debugging, and architecture investigations should each maintain a file in `docs/`
+- See `docs/README.md` for writing guidance
 
 ## Coding Standards
 
@@ -28,8 +39,8 @@ This is a framework-agnostic PHP package template designed for building reusable
 
 ### Namespace Conventions
 
-- Source code: `PoorPlebs\PackageTemplate\*`
-- Tests: `PoorPlebs\PackageTemplate\Tests\*`
+- Source code: `PoorPlebs\TelegramBotSdk\*`
+- Tests: `PoorPlebs\TelegramBotSdk\Tests\*`
 
 ### Forbidden Patterns
 
@@ -39,6 +50,7 @@ This is a framework-agnostic PHP package template designed for building reusable
 ## Tooling Commands
 
 Some commands use caching in the `/cache` directory for performance (for example, PHP-CS-Fixer and PHPStan).
+If local PHP/Composer are unavailable, use Docker via `bin/dc <composer-args...>`.
 
 ### Code Quality
 
@@ -47,15 +59,20 @@ composer lint          # PHP syntax check (parallel)
 composer cs            # Check code style (dry-run)
 composer csf           # Fix code style
 composer static        # PHPStan analysis (level max)
+bin/dc lint            # Same via Docker
+bin/dc cs              # Same via Docker
+bin/dc static          # Same via Docker
 ```
 
 ### Testing
 
 ```bash
 composer test          # Run tests without coverage (parallel)
-composer coverage      # Run tests with coverage (min 80%)
+composer coverage      # Run tests with coverage (min 15%)
 composer coverage-html # Generate HTML coverage report
 composer type-coverage # Check type coverage (min 80%)
+bin/dc test            # Same via Docker
+bin/dc coverage        # Same via Docker
 ```
 
 ### Full CI Pipeline
@@ -63,19 +80,19 @@ composer type-coverage # Check type coverage (min 80%)
 ```bash
 composer ci            # Run all checks (lint, cs, static, coverage)
 composer all           # Run lint, auto-fix code style, static analysis, and tests (no coverage)
-composer coverage-clover # Run tests with coverage, output clover.xml + junit.xml (min 80%)
+composer coverage-clover # Run tests with coverage, output clover.xml + junit.xml (min 15%)
 composer type-coverage # Run type coverage check (min 80%)
 ```
 
 ## Coverage Requirements
 
-- **Code Coverage**: Minimum 80%
+- **Code Coverage**: Minimum 15%
 - **Type Coverage**: Minimum 80%
-- Coverage is enforced in CI and via `--min=80` flag
+- Coverage is enforced in CI via Composer script thresholds (`--min=15` for code coverage, `--min=80` for type coverage)
 
 ## Testing with Pest
 
-This template uses [Pest PHP](https://pestphp.com/) v4 for testing.
+This project uses [Pest PHP](https://pestphp.com/) v4 for testing.
 
 ### Writing Tests
 
@@ -84,7 +101,7 @@ This template uses [Pest PHP](https://pestphp.com/) v4 for testing.
 
 declare(strict_types=1);
 
-use PoorPlebs\PackageTemplate\YourClass;
+use PoorPlebs\TelegramBotSdk\YourClass;
 
 covers(YourClass::class);
 
@@ -105,7 +122,7 @@ Add constraints to `tests/ArchTest.php`:
 
 ```php
 arch('classes follow naming convention')
-    ->expect('PoorPlebs\PackageTemplate')
+    ->expect('PoorPlebs\TelegramBotSdk')
     ->classes()
     ->toHaveSuffix('Handler');
 ```
@@ -122,7 +139,7 @@ PHPStan runs at level `max` with additional rulesets:
 
 1. All code must pass `composer ci` before committing
 2. Add tests for new functionality
-3. Maintain 80%+ code and type coverage
+3. Maintain at least 15% code coverage and 80% type coverage
 4. Update CHANGELOG.md with changes
 5. Follow existing code patterns and naming conventions
 

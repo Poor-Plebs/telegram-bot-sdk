@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+IMAGE_NAME="telegram-bot-sdk-php:local"
+
+cd "${PROJECT_DIR}"
+
+if [ "$#" -eq 0 ]; then
+    echo "Usage: bin/dc <composer-args...>"
+    echo "Examples:"
+    echo "  bin/dc install"
+    echo "  bin/dc test"
+    echo "  bin/dc static"
+    exit 1
+fi
+
+# Keep composer cache writable and persistent inside the mounted project.
+mkdir -p cache/composer/files
+
+"${PROJECT_DIR}/bin/php" /usr/local/bin/composer "$@"

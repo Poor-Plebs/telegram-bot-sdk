@@ -12,6 +12,11 @@
 /cache export-ignore
 /CHANGELOG.md export-ignore
 /composer.lock export-ignore
+/docker-compose.yml export-ignore
+/Dockerfile export-ignore
+/bin export-ignore
+/docs export-ignore
+/AGENTS.md export-ignore
 /phpstan.neon.dist export-ignore
 /phpunit.xml.dist export-ignore
 /tests export-ignore

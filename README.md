@@ -1,79 +1,73 @@
-# poor-plebs/package-template
+# poor-plebs/telegram-bot-sdk
 
-[![CI](https://github.com/Poor-Plebs/package-template/actions/workflows/ci.yml/badge.svg)](https://github.com/Poor-Plebs/package-template/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/Poor-Plebs/package-template/branch/main/graph/badge.svg)](https://codecov.io/gh/Poor-Plebs/package-template)
+Framework-agnostic PHP SDK for Telegram Bot API integration.
 
-**[What is it for?](#what-is-it-for)** |
-**[What are the requirements?](#what-are-the-requirements)** |
-**[How to install it?](#how-to-install-it)** |
-**[How to use it?](#how-to-use-it)** |
-**[How to contribute?](#how-to-contribute)**
+It provides:
 
-Put a short one or two sentence description of the package.
+- `TelegramBotClient` for API calls (`getUpdates`, `sendMessage`, `setWebhook`, etc.)
+- Typed Telegram update/message models
+- Token-safe logging and exception message obfuscation utilities
 
-## What is it for?
+## Requirements
 
-Explain in detail here what this package is for.
+- PHP 8.4+
 
-## What are the requirements?
-
-Explain here what the runtime requirements are, which extensions need to be
-installed.
-
-- PHP 8.4 or above
-
-## How to install it?
-
-Explain here how to install the package.
+## Install
 
 ```bash
-composer require poor-plebs/package-template
+composer require poor-plebs/telegram-bot-sdk
 ```
 
-## How to use it?
+## Quick Start
 
-Explain here how to use this package.
+```php
+<?php
 
-## How to contribute?
+declare(strict_types=1);
 
-`poor-plebs/package-template` follows semantic versioning. Read more on
-[semver.org][1].
+use PoorPlebs\TelegramBotSdk\TelegramBot\TelegramBotClient;
+use Psr\SimpleCache\CacheInterface;
 
-Create issues to report problems or requests. Fork and create pull requests to
-propose solutions and ideas. Always add a CHANGELOG.md entry in the unreleased
-section.
+/** @var CacheInterface $cache */
+$client = new TelegramBotClient(
+    cache: $cache,
+    token: '123456:YOUR_BOT_TOKEN',
+    chatId: 123456789,
+);
 
-### Development Setup
+$client->sendMessage('Hello from SDK')->wait();
+```
 
-This template uses modern PHP tooling with strict quality standards:
-
-- **Testing**: [Pest PHP](https://pestphp.com/) v4 with parallel execution
-- **Static Analysis**: PHPStan at level `max` with strict and deprecation rules
-- **Code Style**: PHP-CS-Fixer (PSR-12)
-- **Coverage Requirements**: Minimum 80% code coverage and 80% type coverage
-
-### Available Commands
+## Development
 
 ```bash
-composer test          # Run tests (parallel, no coverage)
-composer coverage      # Run tests with coverage (min 80%)
-composer type-coverage # Check type coverage (min 80%)
-composer static        # Run PHPStan analysis
-composer cs            # Check code style
-composer csf           # Fix code style
-composer ci            # Run full CI pipeline
+composer lint
+composer cs
+composer static
+composer test
 ```
 
-### Architectural Tests
+## Run With Docker (No Local PHP/Composer)
 
-The template includes architectural tests in `tests/ArchTest.php` that enforce:
-- Strict types declaration in all files
-- Proper namespace conventions
-- No debugging functions (`dd`, `dump`, `var_dump`, etc.)
+Build and use the local dev container:
 
-### AI-Assisted Development
+```bash
+docker compose build php
+```
 
-See [.github/copilot-instructions.md](.github/copilot-instructions.md) for
-guidelines on AI-assisted contributions.
+Run any composer command in Docker:
 
-[1]: https://semver.org
+```bash
+bin/dc install
+bin/dc test
+bin/dc static
+bin/dc ci
+```
+
+## Project Memory
+
+Major work and investigations are tracked in `docs/` using dated files:
+
+- `yyyy-mm-dd_[descriptive_file_name].md`
+
+See `docs/README.md` for conventions.
