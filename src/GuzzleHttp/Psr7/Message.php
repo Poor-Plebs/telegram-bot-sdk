@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use Psr\Http\Message\MessageInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
 use RuntimeException;
 
 final class Message
@@ -67,6 +68,24 @@ final class Message
             }
         }
 
-        return "{$msg}\r\n\r\n" . self::compress((string)$message->getBody());
+        return "{$msg}\r\n\r\n" . self::compress(
+            self::stringifyStream($message->getBody())
+        );
+    }
+
+    private static function stringifyStream(StreamInterface $stream): string
+    {
+        if (!$stream->isSeekable()) {
+            return (string)$stream;
+        }
+
+        $position = $stream->tell();
+        $stream->rewind();
+
+        try {
+            return $stream->getContents();
+        } finally {
+            $stream->seek($position);
+        }
     }
 }

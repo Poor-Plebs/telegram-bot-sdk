@@ -12,6 +12,7 @@ use PoorPlebs\TelegramBotSdk\Obfuscator\StringObfuscator;
 use Psr\Http\Message\MessageInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
 use Stringable;
 use Throwable;
 use UnexpectedValueException;
@@ -141,7 +142,9 @@ final class ObfuscatedMessageFormatter implements MessageFormatterInterface
                             : 'NULL';
                         break;
                     case 'req_body':
-                        $result = Message::compress($req->getBody()->__toString());
+                        $result = Message::compress(
+                            self::stringifyStream($req->getBody())
+                        );
                         break;
                     case 'res_body':
                         if (!$res instanceof ResponseInterface) {
@@ -161,7 +164,9 @@ final class ObfuscatedMessageFormatter implements MessageFormatterInterface
                             break;
                         }
 
-                        $result = Message::compress($res->getBody()->__toString());
+                        $result = Message::compress(
+                            self::stringifyStream($res->getBody())
+                        );
                         break;
                     case 'ts':
                     case 'date_iso_8601':
@@ -325,16 +330,18 @@ final class ObfuscatedMessageFormatter implements MessageFormatterInterface
             return $req;
         }
 
+        $body = $req->getBody();
+        $position = $body->isSeekable()
+            ? $body->tell()
+            : null;
+
         /** @var array<int|string,mixed> $reqJson */
         $reqJson = json_decode(
-            (string)$req->getBody(),
+            self::stringifyStream($body),
             true,
             512,
             JSON_THROW_ON_ERROR
         );
-        if ($req->getBody()->isSeekable()) {
-            $req->getBody()->rewind();
-        }
 
         $match = false;
         array_walk_recursive($reqJson, function (&$value, $key) use (&$match) {
@@ -356,6 +363,15 @@ final class ObfuscatedMessageFormatter implements MessageFormatterInterface
                 $reqJson,
                 JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT
             )));
+
+            if ($position !== null && $req->getBody()->isSeekable()) {
+                $size = $req->getBody()->getSize();
+                $targetPosition = $position;
+                if (is_int($size)) {
+                    $targetPosition = min($position, $size);
+                }
+                $req->getBody()->seek($targetPosition);
+            }
         }
 
         return $req;
@@ -401,16 +417,18 @@ final class ObfuscatedMessageFormatter implements MessageFormatterInterface
             return $res;
         }
 
+        $body = $res->getBody();
+        $position = $body->isSeekable()
+            ? $body->tell()
+            : null;
+
         /** @var array<int|string,mixed> $resJson */
         $resJson = json_decode(
-            (string)$res->getBody(),
+            self::stringifyStream($body),
             true,
             512,
             JSON_THROW_ON_ERROR
         );
-        if ($res->getBody()->isSeekable()) {
-            $res->getBody()->rewind();
-        }
 
         $match = false;
         array_walk_recursive($resJson, function (&$value, $key) use (&$match) {
@@ -432,6 +450,15 @@ final class ObfuscatedMessageFormatter implements MessageFormatterInterface
                 $resJson,
                 JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT
             )));
+
+            if ($position !== null && $res->getBody()->isSeekable()) {
+                $size = $res->getBody()->getSize();
+                $targetPosition = $position;
+                if (is_int($size)) {
+                    $targetPosition = min($position, $size);
+                }
+                $res->getBody()->seek($targetPosition);
+            }
         }
 
         return $res;
@@ -564,5 +591,21 @@ final class ObfuscatedMessageFormatter implements MessageFormatterInterface
         }
 
         return false;
+    }
+
+    private static function stringifyStream(StreamInterface $stream): string
+    {
+        if (!$stream->isSeekable()) {
+            return (string)$stream;
+        }
+
+        $position = $stream->tell();
+        $stream->rewind();
+
+        try {
+            return $stream->getContents();
+        } finally {
+            $stream->seek($position);
+        }
     }
 }

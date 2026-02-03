@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PoorPlebs\TelegramBotSdk\GuzzleHttp\Psr7;
 
+use GuzzleHttp\Psr7\Query;
 use GuzzleHttp\Psr7\Uri as GuzzleUri;
 use PoorPlebs\TelegramBotSdk\Obfuscator\StringObfuscator;
 use Psr\Http\Message\UriInterface;
@@ -12,12 +13,12 @@ use UnexpectedValueException;
 final class Uri extends GuzzleUri
 {
     /**
-     * Redeclared this property in this class, because guzzle's Uri
-     * implementation declared this property as private.
+     * Mirrors guzzle URI query separator replacement to avoid double-encoding
+     * already encoded query keys/values before calling withQuery().
      *
      * @var array<string,string>
      */
-    private static $replaceQuery = ['=' => '%3D', '&' => '%26'];
+    private const REPLACE_QUERY = ['=' => '%3D', '&' => '%26'];
 
     /**
      * Copied from ringcentral psr7 package.
@@ -33,33 +34,9 @@ final class Uri extends GuzzleUri
      */
     public static function parseQueryString(string $query): array
     {
-        $result = [];
+        $result = Query::parse($query, true);
 
-        if ($query === '') {
-            return $result;
-        }
-
-        $decoder = fn (string $url): string => rawurldecode(str_replace(
-            '+',
-            ' ',
-            $url
-        ));
-
-        foreach (explode('&', $query) as $keyValuePair) {
-            $parts = explode('=', $keyValuePair, 2);
-            $key = $decoder($parts[0]);
-            $value = isset($parts[1]) ? $decoder($parts[1]) : null;
-
-            if (!isset($result[$key])) {
-                $result[$key] = $value;
-            } else {
-                if (!is_array($result[$key])) {
-                    $result[$key] = [$result[$key]];
-                }
-                $result[$key][] = $value;
-            }
-        }
-
+        /** @var array<string,array<int|string|null>|string|null> $result */
         return $result;
     }
 
@@ -102,16 +79,16 @@ final class Uri extends GuzzleUri
     ): UriInterface {
         $queryString = $uri->getQuery();
 
-        // Shortcut to avoid unecessary processing.
-        if (
-            $queryString === '' ||
-            strpos($queryString, "{$parameter}=") === false
-        ) {
+        if ($queryString === '') {
             return $uri;
         }
 
         $finalQuery = [];
         $queryParameters = self::parseQueryString($queryString);
+        if (!array_key_exists($parameter, $queryParameters)) {
+            return $uri;
+        }
+
         foreach ($queryParameters as $queryParameter => &$values) {
             if (!is_array($values)) {
                 $values = [$values];
@@ -122,13 +99,13 @@ final class Uri extends GuzzleUri
              * the query string. All other chars that need percent-encoding will
              * be encoded by withQuery().
              */
-            $finalKey = strtr($queryParameter, self::$replaceQuery);
+            $finalKey = strtr($queryParameter, self::REPLACE_QUERY);
             foreach ($values as &$value) {
                 $value = (string)$value;
                 if ($queryParameter === $parameter) {
                     $value = $obfuscator($value);
                 }
-                $finalValue = strtr($value, self::$replaceQuery);
+                $finalValue = strtr($value, self::REPLACE_QUERY);
                 $finalQuery[] = "{$finalKey}={$finalValue}";
             }
         }

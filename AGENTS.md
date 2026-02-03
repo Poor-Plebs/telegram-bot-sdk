@@ -70,10 +70,19 @@ bin/dc static          # Same via Docker
 composer test          # Run tests without coverage (parallel)
 composer coverage      # Run tests with coverage (min 15%)
 composer coverage-html # Generate HTML coverage report
+composer coverage-clover # Generate clover.xml + junit.xml (min 15%)
 composer type-coverage # Check type coverage (min 80%)
 bin/dc test            # Same via Docker
 bin/dc coverage        # Same via Docker
+bin/dc coverage-html   # Same via Docker
+bin/dc coverage-clover # Same via Docker
+bin/dc type-coverage   # Same via Docker
 ```
+
+### Test Artifacts
+
+- Coverage and reporting commands can generate `coverage/`, `clover.xml`, and `junit.xml`
+- These artifacts should stay untracked and are excluded via `.gitignore`
 
 ### Full CI Pipeline
 
