@@ -1,5 +1,8 @@
 # poor-plebs/telegram-bot-sdk
 
+[![CI](https://github.com/Poor-Plebs/telegram-bot-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/Poor-Plebs/telegram-bot-sdk/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/Poor-Plebs/telegram-bot-sdk/branch/main/graph/badge.svg)](https://codecov.io/gh/Poor-Plebs/telegram-bot-sdk)
+
 Framework-agnostic PHP SDK for Telegram Bot API integration.
 
 It provides:
