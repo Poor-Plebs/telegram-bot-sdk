@@ -13,7 +13,7 @@ Use it to capture meaningful work that should be easy to continue later:
 
 Every memory file must be Markdown and follow:
 
-`yyyy-mm-dd_[descriptive_file_name].md`
+`yyyy-mm-dd_[descriptive-file-name].md`
 
 Examples:
 
