@@ -10,6 +10,9 @@
 /.gitignore export-ignore
 /.php-cs-fixer.dist.php export-ignore
 /cache export-ignore
+/clover.xml export-ignore
+/coverage export-ignore
+/junit.xml export-ignore
 /CHANGELOG.md export-ignore
 /composer.lock export-ignore
 /docker-compose.yml export-ignore
