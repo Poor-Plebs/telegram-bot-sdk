@@ -149,8 +149,18 @@ PHPStan runs at level `max` with additional rulesets:
 1. All code must pass `composer ci` before committing
 2. Add tests for new functionality
 3. Maintain at least 15% code coverage and 80% type coverage
-4. Update CHANGELOG.md with changes
-5. Follow existing code patterns and naming conventions
+4. Use SemVer tags without the `v` prefix (for example `1.2.3`)
+5. Do not maintain a `CHANGELOG.md`; release notes are generated from conventional commits and tags
+6. Follow existing code patterns and naming conventions
+
+## Releases And Publishing
+
+- Publish using Git tags and GitHub releases.
+- Tag format must be `MAJOR.MINOR.PATCH` (no leading `v`).
+- Use tag notes as release notes (for example `gh release create <tag> --notes-from-tag`).
+- Prefer automated release flow via `.github/workflows/release.yml` on tag push.
+- Prefer `bin/release-tag <version> <notes-file> --push` to enforce consistent annotated tags.
+- Keep distribution excludes in `composer.json` (`archive.exclude`) and `.gitattributes` (`export-ignore`) synchronized.
 
 ## File Excludes
 
@@ -161,6 +171,8 @@ The following are excluded from distribution packages:
 - Cache directory
 - Git/GitHub files (`.git`, `.github`, `.gitignore`, `.gitattributes`)
 - Editor config (`.editorconfig`)
+- Editor workspace files (`.vscode`)
+- Local scripts and docs (`bin/`, `docs/`, `Dockerfile`, `docker-compose.yml`, `AGENTS.md`)
 - Composer lockfile (`composer.lock`)
 - Test config (`phpunit.xml.dist`)
-- Changelog (`CHANGELOG.md`)
+- Tool artifacts (`coverage/`, `clover.xml`, `junit.xml`, `vendor/`)

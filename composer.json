@@ -15,8 +15,8 @@
     },
     "authors": [
         {
-            "name": "John Doe",
-            "email": "john.doe@example.com"
+            "name": "Petr Levtonov",
+            "email": "petr@levtonov.com"
         }
     ],
     "archive": {
@@ -24,15 +24,24 @@
             "/.editorconfig",
             "/.git",
             "/.gitattributes",
+            "/.vscode",
+            "/AGENTS.md",
+            "/bin",
+            "/cache",
+            "/clover.xml",
+            "/composer.lock",
+            "/coverage",
+            "/docker-compose.yml",
+            "/Dockerfile",
+            "/docs",
             "/.github",
             "/.gitignore",
             "/.php-cs-fixer.dist.php",
-            "/cache",
-            "/CHANGELOG.md",
-            "/composer.lock",
+            "/junit.xml",
             "/phpstan.neon.dist",
             "/phpunit.xml.dist",
-            "/tests"
+            "/tests",
+            "/vendor"
         ]
     },
     "config": {

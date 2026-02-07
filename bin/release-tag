@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+usage() {
+    echo "Usage: bin/release-tag <version> <notes-file> [--push]"
+    echo "Example: bin/release-tag 1.2.3 .github/release-notes/1.2.3.md --push"
+}
+
+if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
+    usage
+    exit 1
+fi
+
+version="$1"
+notes_file="$2"
+push_flag="${3:-}"
+
+if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+    echo "Invalid version: ${version}"
+    echo "Expected SemVer without 'v' prefix (example: 1.2.3 or 1.2.3-rc.1)."
+    exit 1
+fi
+
+if [ ! -f "${notes_file}" ]; then
+    echo "Notes file not found: ${notes_file}"
+    exit 1
+fi
+
+if [ -n "$(git status --porcelain)" ]; then
+    echo "Working tree is not clean. Commit or stash changes before tagging."
+    exit 1
+fi
+
+if git rev-parse "${version}" >/dev/null 2>&1; then
+    echo "Tag already exists: ${version}"
+    exit 1
+fi
+
+git tag -a "${version}" -F "${notes_file}"
+echo "Created annotated tag ${version} using ${notes_file}"
+
+if [ "${push_flag}" = "--push" ]; then
+    git push origin "${version}"
+    echo "Pushed tag ${version} to origin"
+fi
