@@ -13,6 +13,9 @@ jobs:
     name: GitHub Release
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Validate tag format (SemVer without v prefix)
         run: |
           TAG="${GITHUB_REF_NAME}"
