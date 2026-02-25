@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PoorPlebs\TelegramBotSdk\TelegramBot\GuzzleHttp\Exception;
 
 use GuzzleHttp\Exception\BadResponseException as GuzzleBadResponseException;
-use PoorPlebs\TelegramBotSdk\GuzzleHttp\Psr7\Uri;
+use PoorPlebs\GuzzleObfuscatedFormatter\GuzzleHttp\Psr7\Uri;
 use PoorPlebs\TelegramBotSdk\Obfuscator\TelegramBotTokenObfuscator;
 use Psr\Http\Message\UriInterface;
 

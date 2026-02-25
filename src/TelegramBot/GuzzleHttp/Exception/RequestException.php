@@ -7,7 +7,7 @@ namespace PoorPlebs\TelegramBotSdk\TelegramBot\GuzzleHttp\Exception;
 use GuzzleHttp\BodySummarizer;
 use GuzzleHttp\BodySummarizerInterface;
 use GuzzleHttp\Exception\RequestException as GuzzleRequestException;
-use PoorPlebs\TelegramBotSdk\GuzzleHttp\Psr7\Uri;
+use PoorPlebs\GuzzleObfuscatedFormatter\GuzzleHttp\Psr7\Uri;
 use PoorPlebs\TelegramBotSdk\Obfuscator\TelegramBotTokenObfuscator;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;

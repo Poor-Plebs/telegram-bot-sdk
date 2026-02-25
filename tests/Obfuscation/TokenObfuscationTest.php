@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
-use PoorPlebs\TelegramBotSdk\GuzzleHttp\ObfuscatedMessageFormatter;
+use PoorPlebs\GuzzleObfuscatedFormatter\GuzzleHttp\ObfuscatedMessageFormatter;
 use PoorPlebs\TelegramBotSdk\Obfuscator\TelegramBotTokenObfuscator;
 use PoorPlebs\TelegramBotSdk\TelegramBot\GuzzleHttp\Exception\RequestException;
 
-covers(TelegramBotTokenObfuscator::class, ObfuscatedMessageFormatter::class, RequestException::class);
+covers(TelegramBotTokenObfuscator::class, RequestException::class);
 
 it('obfuscates telegram bot token strings', function (): void {
     $obfuscator = new TelegramBotTokenObfuscator();
