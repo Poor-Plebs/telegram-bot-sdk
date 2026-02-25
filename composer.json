@@ -21,6 +21,8 @@
     ],
     "archive": {
         "exclude": [
+            "/.claude",
+            "/codecov.yml",
             "/.editorconfig",
             "/.git",
             "/.gitattributes",
