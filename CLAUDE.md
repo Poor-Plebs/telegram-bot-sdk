@@ -172,7 +172,7 @@ The following are excluded from distribution packages:
 - Git/GitHub files (`.git`, `.github`, `.gitignore`, `.gitattributes`)
 - Editor config (`.editorconfig`)
 - Editor workspace files (`.vscode`)
-- Local scripts and docs (`bin/`, `docs/`, `Dockerfile`, `docker-compose.yml`, `AGENTS.md`)
+- Local scripts and docs (`bin/`, `docs/`, `Dockerfile`, `docker-compose.yml`, `CLAUDE.md`)
 - Composer lockfile (`composer.lock`)
 - Test config (`phpunit.xml.dist`)
 - Tool artifacts (`coverage/`, `clover.xml`, `junit.xml`, `vendor/`)

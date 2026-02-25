@@ -25,7 +25,7 @@
             "/.git",
             "/.gitattributes",
             "/.vscode",
-            "/AGENTS.md",
+            "/CLAUDE.md",
             "/bin",
             "/cache",
             "/clover.xml",

@@ -60,7 +60,7 @@ jobs:
           echo ""
           echo "Available commands:"
           echo "  - composer test      (runs Pest tests without coverage)"
-          echo "  - composer coverage  (runs Pest tests with coverage, min 80%)"
+          echo "  - composer coverage  (runs Pest tests with coverage, min 15%)"
           echo "  - composer static    (runs PHPStan analysis)"
           echo "  - composer cs        (checks code style)"
           echo "  - composer csf       (fixes code style)"
