@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9822cb0227d84ccf695b8fff5d99d393",
+    "content-hash": "88eb7bf1a72325b8c034d57e5be99e84",
     "packages": [
         {
             "name": "carbonphp/carbon-doctrine-types",
@@ -555,16 +555,16 @@
         },
         {
             "name": "poor-plebs/guzzle-obfuscated-formatter",
-            "version": "1.0.1",
+            "version": "1.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Poor-Plebs/guzzle-obfuscated-formatter.git",
-                "reference": "9debf429f57403a38aae734c7c1dba25ca1a0d32"
+                "reference": "76ede0110651faf1ed2dc769a4a9c6c9bd35ce18"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Poor-Plebs/guzzle-obfuscated-formatter/zipball/9debf429f57403a38aae734c7c1dba25ca1a0d32",
-                "reference": "9debf429f57403a38aae734c7c1dba25ca1a0d32",
+                "url": "https://api.github.com/repos/Poor-Plebs/guzzle-obfuscated-formatter/zipball/76ede0110651faf1ed2dc769a4a9c6c9bd35ce18",
+                "reference": "76ede0110651faf1ed2dc769a4a9c6c9bd35ce18",
                 "shasum": ""
             },
             "require": {
@@ -600,9 +600,9 @@
             "description": "Guzzle HTTP message formatter with configurable obfuscation for safe logging of sensitive data.",
             "support": {
                 "issues": "https://github.com/Poor-Plebs/guzzle-obfuscated-formatter/issues",
-                "source": "https://github.com/Poor-Plebs/guzzle-obfuscated-formatter/tree/1.0.1"
+                "source": "https://github.com/Poor-Plebs/guzzle-obfuscated-formatter/tree/1.0.2"
             },
-            "time": "2026-02-25T21:02:25+00:00"
+            "time": "2026-02-25T21:34:46+00:00"
         },
         {
             "name": "poor-plebs/guzzle-retry-after-middleware",
