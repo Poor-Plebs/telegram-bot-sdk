@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9822cb0227d84ccf695b8fff5d99d393",
+    "content-hash": "424347bf34c11f3bc95b55c43dcfe1ca",
     "packages": [
         {
             "name": "carbonphp/carbon-doctrine-types",
@@ -507,27 +507,27 @@
         },
         {
             "name": "poor-plebs/guzzle-connect-retry-decider",
-            "version": "1.1.1",
+            "version": "1.1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Poor-Plebs/guzzle-connect-retry-decider.git",
-                "reference": "91f2284f2d999b6608db7df28500ebe8cee79102"
+                "reference": "34d304e2db3922c576d717a68ba1a936f349665d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Poor-Plebs/guzzle-connect-retry-decider/zipball/91f2284f2d999b6608db7df28500ebe8cee79102",
-                "reference": "91f2284f2d999b6608db7df28500ebe8cee79102",
+                "url": "https://api.github.com/repos/Poor-Plebs/guzzle-connect-retry-decider/zipball/34d304e2db3922c576d717a68ba1a936f349665d",
+                "reference": "34d304e2db3922c576d717a68ba1a936f349665d",
                 "shasum": ""
             },
             "require": {
                 "guzzlehttp/guzzle": "^6.5.8 || ^7.4.5",
                 "php": "^8.1.0",
-                "psr/http-message": "^1.0.0"
+                "psr/http-message": "^1.0.0 || ^2.0.0"
             },
             "require-dev": {
-                "friendsofphp/php-cs-fixer": "^3.13.0",
-                "phpstan/phpstan": "^1.9.0",
-                "phpunit/phpunit": "^9.5.26",
+                "friendsofphp/php-cs-fixer": "^3.17.0",
+                "phpstan/phpstan": "^1.10.16",
+                "phpunit/phpunit": "^10.2.1",
                 "roave/security-advisories": "dev-latest"
             },
             "type": "library",
@@ -549,9 +549,9 @@
             "description": "A guzzle retry middleware decider that re-attempts requests whenever a connection fails to be established. Always retries up to x times for GET requests and under specific conditions also for other HTTP methods.",
             "support": {
                 "issues": "https://github.com/Poor-Plebs/guzzle-connect-retry-decider/issues",
-                "source": "https://github.com/Poor-Plebs/guzzle-connect-retry-decider/tree/1.1.1"
+                "source": "https://github.com/Poor-Plebs/guzzle-connect-retry-decider/tree/1.1.2"
             },
-            "time": "2022-12-21T20:54:02+00:00"
+            "time": "2023-06-06T15:09:10+00:00"
         },
         {
             "name": "poor-plebs/guzzle-obfuscated-formatter",
@@ -813,16 +813,16 @@
         },
         {
             "name": "psr/http-message",
-            "version": "1.1",
+            "version": "2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-fig/http-message.git",
-                "reference": "cb6ce4845ce34a8ad9e68117c10ee90a29919eba"
+                "reference": "402d35bcb92c70c026d1a6a9883f06b2ead23d71"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/http-message/zipball/cb6ce4845ce34a8ad9e68117c10ee90a29919eba",
-                "reference": "cb6ce4845ce34a8ad9e68117c10ee90a29919eba",
+                "url": "https://api.github.com/repos/php-fig/http-message/zipball/402d35bcb92c70c026d1a6a9883f06b2ead23d71",
+                "reference": "402d35bcb92c70c026d1a6a9883f06b2ead23d71",
                 "shasum": ""
             },
             "require": {
@@ -831,7 +831,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.1.x-dev"
+                    "dev-master": "2.0.x-dev"
                 }
             },
             "autoload": {
@@ -846,7 +846,7 @@
             "authors": [
                 {
                     "name": "PHP-FIG",
-                    "homepage": "http://www.php-fig.org/"
+                    "homepage": "https://www.php-fig.org/"
                 }
             ],
             "description": "Common interface for HTTP messages",
@@ -860,9 +860,9 @@
                 "response"
             ],
             "support": {
-                "source": "https://github.com/php-fig/http-message/tree/1.1"
+                "source": "https://github.com/php-fig/http-message/tree/2.0"
             },
-            "time": "2023-04-04T09:50:52+00:00"
+            "time": "2023-04-04T09:54:51+00:00"
         },
         {
             "name": "psr/log",
