@@ -59,7 +59,7 @@
     "require": {
         "php": "^8.4.0",
         "guzzlehttp/guzzle": "^7.10.0",
-        "nesbot/carbon": "^3.11.0",
+        "nesbot/carbon": "^3.11.3",
         "poor-plebs/guzzle-connect-retry-decider": "^1.1.1",
         "poor-plebs/guzzle-obfuscated-formatter": "^1.0.1",
         "poor-plebs/guzzle-retry-after-middleware": "^3.1.0",
