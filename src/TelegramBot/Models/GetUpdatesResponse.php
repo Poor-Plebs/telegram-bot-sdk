@@ -24,10 +24,23 @@ class GetUpdatesResponse extends TelegramResponse
     public readonly mixed $result; // @phpstan-ignore-line
 
     /**
+     * Unknown Telegram message entity type strings observed while parsing this
+     * batch (deduplicated). Subclasses can react to these for early warning of
+     * additive Bot API changes that the SDK enum does not yet recognize.
+     *
+     * @var array<int,string>
+     */
+    public array $unknownMessageEntityTypes = [];
+
+    /**
      * @param array<int|string,mixed> $result
      */
     protected function init(array $result): void
     {
+        // Discard anything left in the accumulator from a prior parse pass so
+        // unknown types from earlier batches cannot leak into this one.
+        MessageEntity::flushUnknownTypeAccumulator();
+
         $updates = [];
 
         foreach ($result as $update) {
@@ -46,6 +59,10 @@ class GetUpdatesResponse extends TelegramResponse
                 }
             }
         }
+
+        $this->unknownMessageEntityTypes = array_values(array_unique(
+            MessageEntity::flushUnknownTypeAccumulator(),
+        ));
 
         /** @phpstan-ignore-next-line property.readOnlyAssignNotInConstructor */
         $this->result = $updates;

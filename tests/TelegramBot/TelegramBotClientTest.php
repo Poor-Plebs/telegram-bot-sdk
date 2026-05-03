@@ -17,6 +17,7 @@ use PoorPlebs\TelegramBotSdk\TelegramBot\Models\TelegramResponse;
 use PoorPlebs\TelegramBotSdk\TelegramBot\Models\TextMessage;
 use PoorPlebs\TelegramBotSdk\TelegramBot\Models\WebhookInfo;
 use PoorPlebs\TelegramBotSdk\TelegramBot\TelegramBotClient;
+use PoorPlebs\TelegramBotSdk\Tests\Support\GetUpdatesResponseSpy;
 use PoorPlebs\TelegramBotSdk\Tests\Support\InMemoryCache;
 use Psr\Log\NullLogger;
 
@@ -554,6 +555,44 @@ it('rethrows non-connect exceptions from the http error middleware', function ()
 
     expect(fn (): mixed => $client->getMe()->wait())
         ->toThrow(RuntimeException::class, 'unexpected transport failure');
+});
+
+it('uses the response class returned by getUpdatesResponseClass when parsing getUpdates', function (): void {
+    $responseBody = json_encode([
+        'ok' => true,
+        'result' => [[
+            'update_id' => 9100,
+            'message' => [
+                'message_id' => 11,
+                'date' => 1_700_000_000,
+                'from' => ['id' => 123, 'is_bot' => false, 'first_name' => 'Petr'],
+                'chat' => ['id' => 123, 'type' => 'private', 'first_name' => 'Petr'],
+                'text' => 'Hello',
+            ],
+        ]],
+    ], JSON_THROW_ON_ERROR);
+
+    $mockHandler = new MockHandler([
+        new Response(200, ['Content-Type' => 'application/json'], $responseBody),
+    ]);
+
+    GetUpdatesResponseSpy::$instances = 0;
+
+    $client = new class (
+        new InMemoryCache(),
+        '123456:SECRET_TOKEN',
+        42,
+        ['handler' => HandlerStack::create($mockHandler)],
+    ) extends TelegramBotClient {
+        protected function getUpdatesResponseClass(): string
+        {
+            return GetUpdatesResponseSpy::class;
+        }
+    };
+
+    $client->getUpdates()->wait();
+
+    expect(GetUpdatesResponseSpy::$instances)->toBe(1);
 });
 
 it('invokes extendHandlerStack so subclasses can push extra middleware', function (): void {

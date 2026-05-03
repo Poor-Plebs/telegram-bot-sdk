@@ -11,6 +11,7 @@ use PoorPlebs\TelegramBotSdk\TelegramBot\Models\GetFileResponse;
 use PoorPlebs\TelegramBotSdk\TelegramBot\Models\GetUpdatesResponse;
 use PoorPlebs\TelegramBotSdk\TelegramBot\Models\GetWebhookInfoResponse;
 use PoorPlebs\TelegramBotSdk\TelegramBot\Models\InvoiceMessage;
+use PoorPlebs\TelegramBotSdk\TelegramBot\Models\MessageEntity;
 use PoorPlebs\TelegramBotSdk\TelegramBot\Models\MessageUpdate;
 use PoorPlebs\TelegramBotSdk\TelegramBot\Models\PreCheckoutQueryUpdate;
 use PoorPlebs\TelegramBotSdk\TelegramBot\Models\SendInvoiceResponse;
@@ -192,6 +193,56 @@ it('substitutes a generic update and records the failure when an update fails to
         ->and($response->result[2])->toBeInstanceOf(MessageUpdate::class)
         ->and($response->parseErrors)->toHaveCount(1)
         ->and($response->parseErrors[0])->toBeInstanceOf(Throwable::class);
+});
+
+it('surfaces deduped unknown entity types from message parsing onto the response', function (): void {
+    $response = GetUpdatesResponse::make(modelResponse([
+        'ok' => true,
+        'result' => [
+            [
+                'update_id' => 41,
+                'message' => updateMessage([
+                    'text' => 'hello',
+                    'entities' => [
+                        ['type' => 'bold', 'offset' => 0, 'length' => 5],
+                        ['type' => 'some_future_type', 'offset' => 0, 'length' => 1],
+                        ['type' => 'another_future_type', 'offset' => 1, 'length' => 1],
+                    ],
+                ]),
+            ],
+            [
+                'update_id' => 42,
+                'message' => updateMessage([
+                    'text' => 'hi',
+                    'entities' => [
+                        // Same unknown type as above — should be deduped.
+                        ['type' => 'some_future_type', 'offset' => 0, 'length' => 1],
+                    ],
+                ]),
+            ],
+        ],
+    ]));
+
+    expect($response->result)->toHaveCount(2)
+        ->and($response->unknownMessageEntityTypes)
+        ->toBe(['some_future_type', 'another_future_type']);
+});
+
+it('starts each batch with an empty unknown entity type accumulator', function (): void {
+    // Pre-populate the accumulator from outside any parse pass.
+    MessageEntity::tryCreate(['type' => 'leftover_from_elsewhere', 'offset' => 0, 'length' => 1]);
+
+    $response = GetUpdatesResponse::make(modelResponse([
+        'ok' => true,
+        'result' => [
+            [
+                'update_id' => 51,
+                'message' => updateMessage(['text' => 'clean']),
+            ],
+        ],
+    ]));
+
+    expect($response->unknownMessageEntityTypes)->toBe([]);
 });
 
 it('skips updates with no parseable update_id when they fail to parse', function (): void {

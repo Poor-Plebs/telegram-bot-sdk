@@ -161,6 +161,8 @@ it('creates a message entity for every documented telegram bot api type', functi
 ]);
 
 it('returns null from tryCreate for entity types the sdk does not know yet', function (): void {
+    MessageEntity::flushUnknownTypeAccumulator();
+
     $entity = MessageEntity::tryCreate([
         'type' => 'some_future_telegram_type',
         'offset' => 0,
@@ -168,6 +170,27 @@ it('returns null from tryCreate for entity types the sdk does not know yet', fun
     ]);
 
     expect($entity)->toBeNull();
+});
+
+it('records unknown entity types into the accumulator and drains them on flush', function (): void {
+    // Discard anything left from prior tests so we observe only this batch.
+    MessageEntity::flushUnknownTypeAccumulator();
+
+    MessageEntity::tryCreate(['type' => 'some_future_type', 'offset' => 0, 'length' => 1]);
+    MessageEntity::tryCreate(['type' => 'another_future_type', 'offset' => 5, 'length' => 2]);
+    MessageEntity::tryCreate(['type' => 'bold', 'offset' => 10, 'length' => 3]);
+    // Empty / non-string types are not recorded — accumulator only carries
+    // actionable type names.
+    MessageEntity::tryCreate(['type' => '', 'offset' => 0, 'length' => 1]);
+    MessageEntity::tryCreate(['offset' => 0, 'length' => 1]);
+
+    $first = MessageEntity::flushUnknownTypeAccumulator();
+
+    // Drain again to prove the accumulator empties on flush.
+    $second = MessageEntity::flushUnknownTypeAccumulator();
+
+    expect($first)->toBe(['some_future_type', 'another_future_type'])
+        ->and($second)->toBe([]);
 });
 
 it('creates file, voice, and invoice models', function (): void {

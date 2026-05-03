@@ -306,6 +306,8 @@ class TelegramBotClient implements LoggerAwareInterface, TelegramBotClientInterf
             $allowedUpdatesJson = json_encode($allowedUpdates, JSON_THROW_ON_ERROR);
         }
 
+        $responseClass = $this->getUpdatesResponseClass();
+
         return $this
             ->client
             ->getAsync(
@@ -320,7 +322,7 @@ class TelegramBotClient implements LoggerAwareInterface, TelegramBotClientInterf
                     ], fn ($value): bool => $value !== null),
                 ], $options)
             )
-            ->then(GetUpdatesResponse::make(...))
+            ->then($responseClass::make(...))
             ->then(fn (GetUpdatesResponse $response): array => $response->result);
     }
 
@@ -445,6 +447,20 @@ class TelegramBotClient implements LoggerAwareInterface, TelegramBotClientInterf
      */
     protected function extendHandlerStack(HandlerStack $stack): void
     {
+    }
+
+    /**
+     * Override in subclasses to return a custom GetUpdatesResponse class.
+     * Lets callers attach observability behavior to per-batch parse state
+     * (e.g. report parseErrors to Sentry, log unknownMessageEntityTypes) by
+     * subclassing the response and reacting in init() — without the SDK having
+     * to know about the host framework's logging or error reporting facilities.
+     *
+     * @return class-string<GetUpdatesResponse>
+     */
+    protected function getUpdatesResponseClass(): string
+    {
+        return GetUpdatesResponse::class;
     }
 
     /**
