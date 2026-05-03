@@ -555,3 +555,22 @@ it('rethrows non-connect exceptions from the http error middleware', function ()
     expect(fn (): mixed => $client->getMe()->wait())
         ->toThrow(RuntimeException::class, 'unexpected transport failure');
 });
+
+it('invokes extendHandlerStack so subclasses can push extra middleware', function (): void {
+    $client = new class (new InMemoryCache(), '123456:SECRET_TOKEN', 42) extends TelegramBotClient {
+        public ?HandlerStack $capturedStack = null;
+
+        public bool $hookInvoked = false;
+
+        protected function extendHandlerStack(HandlerStack $stack): void
+        {
+            $this->hookInvoked = true;
+            $this->capturedStack = $stack;
+            $stack->push(Middleware::tap(static fn (): null => null), 'subclass_marker');
+        }
+    };
+
+    expect($client->hookInvoked)->toBeTrue()
+        ->and($client->capturedStack)->not->toBeNull()
+        ->and((string)$client->capturedStack)->toContain('subclass_marker');
+});

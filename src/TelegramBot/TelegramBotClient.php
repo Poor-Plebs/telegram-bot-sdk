@@ -36,7 +36,7 @@ use Psr\SimpleCache\CacheInterface;
 use Throwable;
 use UnexpectedValueException;
 
-final class TelegramBotClient implements LoggerAwareInterface, TelegramBotClientInterface
+class TelegramBotClient implements LoggerAwareInterface, TelegramBotClientInterface
 {
     /**
      * @var array<int,string> AVAILABLE_PARSE_MODES
@@ -132,6 +132,8 @@ final class TelegramBotClient implements LoggerAwareInterface, TelegramBotClient
             new RetryAfterMiddleware($cache),
             'retry_after',
         );
+
+        $this->extendHandlerStack($handlerStack);
 
         $this->client = new Client(array_merge([
             'base_uri' => rtrim(sprintf(
@@ -432,6 +434,17 @@ final class TelegramBotClient implements LoggerAwareInterface, TelegramBotClient
                 ]
             )
             ->then(TelegramResponse::make(...));
+    }
+
+    /**
+     * Extension hook for subclasses to push additional Guzzle middleware onto
+     * the handler stack the SDK constructs. Called after the SDK's own
+     * middleware (connect_retry, obfuscated_logger, http_errors, retry_after)
+     * is in place and before the Guzzle Client is built. Discarded if the
+     * caller fully overrides the stack via the `handler` config option.
+     */
+    protected function extendHandlerStack(HandlerStack $stack): void
+    {
     }
 
     /**
