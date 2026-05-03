@@ -157,7 +157,67 @@ it('maps mixed update payloads in get updates response', function (): void {
     expect($response->result)->toHaveCount(3)
         ->and($response->result[0])->toBeInstanceOf(MessageUpdate::class)
         ->and($response->result[1])->toBeInstanceOf(CallbackQueryUpdate::class)
-        ->and($response->result[2])->toBeInstanceOf(GenericUpdate::class);
+        ->and($response->result[2])->toBeInstanceOf(GenericUpdate::class)
+        ->and($response->parseErrors)->toBeEmpty();
+});
+
+it('substitutes a generic update and records the failure when an update fails to parse', function (): void {
+    $response = GetUpdatesResponse::make(modelResponse([
+        'ok' => true,
+        'result' => [
+            [
+                'update_id' => 21,
+                'message' => updateMessage(['text' => 'good']),
+            ],
+            [
+                'update_id' => 22,
+                'message' => updateMessage([
+                    'text' => 'bad-from',
+                    // Malformed `from.id` triggers a TypeError inside User::create
+                    // — exercises the per-update try/catch in GetUpdatesResponse::init.
+                    'from' => ['id' => 'not-an-int', 'is_bot' => false, 'first_name' => 'X'],
+                ]),
+            ],
+            [
+                'update_id' => 23,
+                'message' => updateMessage(['text' => 'good-again']),
+            ],
+        ],
+    ]));
+
+    expect($response->result)->toHaveCount(3)
+        ->and($response->result[0])->toBeInstanceOf(MessageUpdate::class)
+        ->and($response->result[1])->toBeInstanceOf(GenericUpdate::class)
+        ->and($response->result[1]->id)->toBe(22)
+        ->and($response->result[2])->toBeInstanceOf(MessageUpdate::class)
+        ->and($response->parseErrors)->toHaveCount(1)
+        ->and($response->parseErrors[0])->toBeInstanceOf(Throwable::class);
+});
+
+it('skips updates with no parseable update_id when they fail to parse', function (): void {
+    $response = GetUpdatesResponse::make(modelResponse([
+        'ok' => true,
+        'result' => [
+            [
+                'update_id' => 31,
+                'message' => updateMessage(['text' => 'good']),
+            ],
+            [
+                // update_id present but not an int — we have no integer to
+                // advance the offset to, so the update is dropped from the
+                // result entirely (but still recorded as a parse error).
+                'update_id' => 'not-an-int',
+                'message' => updateMessage([
+                    'from' => ['id' => 'not-an-int', 'is_bot' => false, 'first_name' => 'X'],
+                ]),
+            ],
+        ],
+    ]));
+
+    expect($response->result)->toHaveCount(1)
+        ->and($response->result[0])->toBeInstanceOf(MessageUpdate::class)
+        ->and($response->result[0]->id)->toBe(31)
+        ->and($response->parseErrors)->toHaveCount(1);
 });
 
 it('parses telegram response description and handles non-array result payloads', function (): void {

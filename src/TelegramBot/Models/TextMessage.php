@@ -75,7 +75,13 @@ class TextMessage extends Message
             }
 
             /** @var array<string,mixed> $entityData */
-            $entities[] = MessageEntity::create($entityData);
+            $entity = MessageEntity::tryCreate($entityData);
+
+            if ($entity === null) {
+                continue;
+            }
+
+            $entities[] = $entity;
         }
 
         return $entities;

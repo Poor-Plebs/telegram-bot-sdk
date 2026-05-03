@@ -124,6 +124,28 @@ it('creates text messages and ignores invalid entities entries', function (): vo
         ->and($message->entities[0]->length)->toBe(6);
 });
 
+it('creates text messages and skips entity types the sdk does not yet know', function (): void {
+    $message = Message::create(modelMessage([
+        'text' => 'quoted bold',
+        'entities' => [
+            [
+                'type' => 'some_future_telegram_type',
+                'offset' => 0,
+                'length' => 6,
+            ],
+            [
+                'type' => 'bold',
+                'offset' => 7,
+                'length' => 4,
+            ],
+        ],
+    ]));
+
+    expect($message)->toBeInstanceOf(TextMessage::class)
+        ->and($message->entities)->toHaveCount(1)
+        ->and($message->entities[0]->offset)->toBe(7);
+});
+
 it('creates text messages with recursive text replies and non-array entities fallback', function (): void {
     $message = Message::create(modelMessage([
         'text' => 'parent text',

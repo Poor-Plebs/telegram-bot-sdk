@@ -130,6 +130,46 @@ it('creates chat and message entity models', function (): void {
         ->and($entity->offset)->toBe(1);
 });
 
+it('creates a message entity for every documented telegram bot api type', function (string $telegramType, MessageEntityType $expected): void {
+    $entity = MessageEntity::create([
+        'type' => $telegramType,
+        'offset' => 0,
+        'length' => 5,
+    ]);
+
+    expect($entity->type)->toBe($expected);
+})->with([
+    'mention' => ['mention', MessageEntityType::MENTION],
+    'hashtag' => ['hashtag', MessageEntityType::HASHTAG],
+    'cashtag' => ['cashtag', MessageEntityType::CASHTAG],
+    'bot_command' => ['bot_command', MessageEntityType::BOT_COMMAND],
+    'url' => ['url', MessageEntityType::URL],
+    'email' => ['email', MessageEntityType::EMAIL],
+    'phone_number' => ['phone_number', MessageEntityType::PHONE_NUMBER],
+    'bold' => ['bold', MessageEntityType::BOLD],
+    'italic' => ['italic', MessageEntityType::ITALIC],
+    'underline' => ['underline', MessageEntityType::UNDERLINE],
+    'strikethrough' => ['strikethrough', MessageEntityType::STRIKETHROUGH],
+    'spoiler' => ['spoiler', MessageEntityType::SPOILER],
+    'blockquote' => ['blockquote', MessageEntityType::BLOCKQUOTE],
+    'expandable_blockquote' => ['expandable_blockquote', MessageEntityType::EXPANDABLE_BLOCKQUOTE],
+    'code' => ['code', MessageEntityType::CODE],
+    'pre' => ['pre', MessageEntityType::PRE],
+    'text_link' => ['text_link', MessageEntityType::TEXT_LINK],
+    'text_mention' => ['text_mention', MessageEntityType::TEXT_MENTION],
+    'custom_emoji' => ['custom_emoji', MessageEntityType::CUSTOM_EMOJI],
+]);
+
+it('returns null from tryCreate for entity types the sdk does not know yet', function (): void {
+    $entity = MessageEntity::tryCreate([
+        'type' => 'some_future_telegram_type',
+        'offset' => 0,
+        'length' => 1,
+    ]);
+
+    expect($entity)->toBeNull();
+});
+
 it('creates file, voice, and invoice models', function (): void {
     $file = File::create([
         'file_id' => 'file-id',

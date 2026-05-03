@@ -6,12 +6,14 @@ namespace PoorPlebs\TelegramBotSdk\TelegramBot\Enums;
 
 enum MessageEntityType: string
 {
+    case BLOCKQUOTE = 'blockquote';
     case BOLD = 'bold';
     case BOT_COMMAND = 'bot_command';
     case CASHTAG = 'cashtag';
     case CODE = 'code';
     case CUSTOM_EMOJI = 'custom_emoji';
     case EMAIL = 'email';
+    case EXPANDABLE_BLOCKQUOTE = 'expandable_blockquote';
     case HASHTAG = 'hashtag';
     case ITALIC = 'italic';
     case MENTION = 'mention';
