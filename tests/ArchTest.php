@@ -31,10 +31,10 @@ arch('telegram enums are enums and use the type suffix')
     ->toBeEnums()
     ->toHaveSuffix('Type');
 
-arch('telegram guzzle exceptions use the exception suffix')
-    ->expect('PoorPlebs\TelegramBotSdk\TelegramBot\GuzzleHttp\Exception')
+arch('telegram guzzle middleware use the middleware suffix')
+    ->expect('PoorPlebs\TelegramBotSdk\TelegramBot\GuzzleHttp')
     ->classes()
-    ->toHaveSuffix('Exception');
+    ->toHaveSuffix('Middleware');
 
 arch('update models extend abstract update')
     ->expect([
