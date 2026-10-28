@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace PoorPlebs\TelegramBotSdk\TelegramBot;
 
-use GuzzleHttp\BodySummarizerInterface;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Promise\PromiseInterface;
@@ -16,7 +14,7 @@ use PoorPlebs\GuzzleObfuscatedFormatter\GuzzleHttp\ObfuscatedMessageFormatter;
 use PoorPlebs\GuzzleRetryAfterMiddleware\RetryAfterMiddleware;
 use PoorPlebs\TelegramBotSdk\Obfuscator\TelegramBotTokenObfuscator;
 use PoorPlebs\TelegramBotSdk\Psr\Log\WrappedLogger;
-use PoorPlebs\TelegramBotSdk\TelegramBot\GuzzleHttp\Exception\RequestException;
+use PoorPlebs\TelegramBotSdk\TelegramBot\GuzzleHttp\TokenObfuscationMiddleware;
 use PoorPlebs\TelegramBotSdk\TelegramBot\Models\File;
 use PoorPlebs\TelegramBotSdk\TelegramBot\Models\GetFileResponse;
 use PoorPlebs\TelegramBotSdk\TelegramBot\Models\GetUpdatesResponse;
@@ -26,14 +24,12 @@ use PoorPlebs\TelegramBotSdk\TelegramBot\Models\SendInvoiceResponse;
 use PoorPlebs\TelegramBotSdk\TelegramBot\Models\SendMessageResponse;
 use PoorPlebs\TelegramBotSdk\TelegramBot\Models\TelegramResponse;
 use PoorPlebs\TelegramBotSdk\TelegramBot\Models\WebhookInfo;
-use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\SimpleCache\CacheInterface;
-use Throwable;
 use UnexpectedValueException;
 
 class TelegramBotClient implements LoggerAwareInterface, TelegramBotClientInterface
@@ -121,12 +117,13 @@ class TelegramBotClient implements LoggerAwareInterface, TelegramBotClientInterf
             'obfuscated_logger',
         );
 
-        /* Replace default http_errors middleware with ours that uses the
-         * overwritten exception factory to properly obfuscate the telegram bot
-         * token in the request path.
+        /* Wraps http_errors so the exceptions it creates from the request
+         * URI get the telegram bot token masked as well.
          */
-        $handlerStack->remove('http_errors');
-        $handlerStack->unshift(self::httpErrors(), 'http_errors');
+        $handlerStack->unshift(
+            new TokenObfuscationMiddleware(),
+            'token_obfuscation',
+        );
 
         $handlerStack->unshift(
             new RetryAfterMiddleware($cache),
@@ -135,6 +132,7 @@ class TelegramBotClient implements LoggerAwareInterface, TelegramBotClientInterf
 
         $this->extendHandlerStack($handlerStack);
 
+        // @phpstan-ignore argument.type (Caller supplied Guzzle config is passed through as is.)
         $this->client = new Client(array_merge([
             'base_uri' => rtrim(sprintf(
                 self::BASE_URI,
@@ -312,6 +310,7 @@ class TelegramBotClient implements LoggerAwareInterface, TelegramBotClientInterf
             ->client
             ->getAsync(
                 'getUpdates',
+                // @phpstan-ignore argument.type (Caller supplied request options are passed through as is.)
                 array_merge([
                     RequestOptions::TIMEOUT => 65.0,
                     RequestOptions::QUERY => array_filter([
@@ -322,8 +321,7 @@ class TelegramBotClient implements LoggerAwareInterface, TelegramBotClientInterf
                     ], fn ($value): bool => $value !== null),
                 ], $options)
             )
-            ->then($responseClass::make(...))
-            ->then(fn (GetUpdatesResponse $response): array => $response->result);
+            ->then(fn (ResponseInterface $response): array => $responseClass::make($response)->result);
     }
 
     public function getWebhookInfo(): PromiseInterface
@@ -441,11 +439,11 @@ class TelegramBotClient implements LoggerAwareInterface, TelegramBotClientInterf
     /**
      * Extension hook for subclasses to push additional Guzzle middleware onto
      * the handler stack the SDK constructs. Called after the SDK's own
-     * middleware (connect_retry, obfuscated_logger, http_errors, retry_after)
-     * is in place and before the Guzzle Client is built. Discarded if the
+     * middleware (connect_retry, obfuscated_logger, http_errors,
+     * token_obfuscation, retry_after) is in place and before the Guzzle Client is built. Discarded if the
      * caller fully overrides the stack via the `handler` config option.
      */
-    protected function extendHandlerStack(HandlerStack $stack): void
+    protected function extendHandlerStack(HandlerStack $stack): void // @phpstan-ignore missingType.generics (Generic since Guzzle 8 only.)
     {
     }
 
@@ -461,74 +459,5 @@ class TelegramBotClient implements LoggerAwareInterface, TelegramBotClientInterf
     protected function getUpdatesResponseClass(): string
     {
         return GetUpdatesResponse::class;
-    }
-
-    /**
-     * This is a copy & paste with a different RequestException class usage.
-     *
-     * @see Middleware::httpErrors()
-     */
-    private static function httpErrors(
-        ?BodySummarizerInterface $bodySummarizer = null
-    ): callable {
-        return static function (
-            callable $handler
-        ) use (
-            $bodySummarizer
-        ): callable {
-            return static function (
-                RequestInterface $request,
-                array $options
-            ) use (
-                $handler,
-                $bodySummarizer
-            ): PromiseInterface {
-                if (!array_key_exists('http_errors', $options) || $options['http_errors'] !== true) {
-                    /** @var PromiseInterface $promise */
-                    $promise = $handler($request, $options);
-
-                    return $promise;
-                }
-
-                /** @var PromiseInterface $promise */
-                $promise = $handler($request, $options);
-
-                return $promise->then(
-                    static function (ResponseInterface $response) use (
-                        $request,
-                        $bodySummarizer
-                    ) {
-                        $code = $response->getStatusCode();
-                        if ($code < 400) {
-                            return $response;
-                        }
-
-                        throw RequestException::create(
-                            $request,
-                            $response,
-                            null,
-                            [],
-                            $bodySummarizer
-                        );
-                    },
-                    static function (Throwable $exception) {
-                        if ($exception instanceof ConnectException) {
-                            throw new ConnectException(
-                                (string)preg_replace(
-                                    TelegramBotTokenObfuscator::TOKEN_REGEX,
-                                    '/bot**********',
-                                    $exception->getMessage()
-                                ),
-                                $exception->getRequest(),
-                                null,
-                                $exception->getHandlerContext()
-                            );
-                        }
-
-                        throw $exception;
-                    }
-                );
-            };
-        };
     }
 }

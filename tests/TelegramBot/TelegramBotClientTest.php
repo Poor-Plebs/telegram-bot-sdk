@@ -3,13 +3,15 @@
 declare(strict_types=1);
 
 use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\NetworkTimeoutException;
+use GuzzleHttp\Exception\ServerException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\RequestOptions;
-use PoorPlebs\TelegramBotSdk\TelegramBot\GuzzleHttp\Exception\ServerException;
+use PoorPlebs\TelegramBotSdk\TelegramBot\GuzzleHttp\TokenObfuscationMiddleware;
 use PoorPlebs\TelegramBotSdk\TelegramBot\Models\File;
 use PoorPlebs\TelegramBotSdk\TelegramBot\Models\InvoiceMessage;
 use PoorPlebs\TelegramBotSdk\TelegramBot\Models\MessageUpdate;
@@ -59,19 +61,12 @@ function telegramResponse(array $payload): Response
  * @param array<int,Response|Throwable> $queue
  * @param array<int,array<string,mixed>> $history
  */
-function makeClientWithHttpErrorsMiddleware(array $queue, array &$history): TelegramBotClient
+function makeClientWithTokenObfuscation(array $queue, array &$history): TelegramBotClient
 {
     $mockHandler = new MockHandler($queue);
     $handlerStack = HandlerStack::create($mockHandler);
     $handlerStack->push(Middleware::history($history));
-
-    $reflection = new ReflectionClass(TelegramBotClient::class);
-    $httpErrorsMethod = $reflection->getMethod('httpErrors');
-    $httpErrorsMethod->setAccessible(true);
-    /** @var callable $httpErrors */
-    $httpErrors = $httpErrorsMethod->invoke(null);
-    $handlerStack->remove('http_errors');
-    $handlerStack->unshift($httpErrors, 'http_errors');
+    $handlerStack->unshift(new TokenObfuscationMiddleware(), 'token_obfuscation');
 
     return new TelegramBotClient(
         cache: new InMemoryCache(),
@@ -471,10 +466,10 @@ it('parses getFile and getWebhookInfo into typed models', function (): void {
         ->and($webhookInfo->synchronized())->toBeTrue();
 });
 
-it('converts http error responses into obfuscated request exceptions', function (): void {
+it('obfuscates token in http error exception messages', function (): void {
     $history = [];
 
-    $client = makeClientWithHttpErrorsMiddleware([
+    $client = makeClientWithTokenObfuscation([
         new Response(
             500,
             ['Content-Type' => 'application/json'],
@@ -493,10 +488,10 @@ it('converts http error responses into obfuscated request exceptions', function 
     }
 });
 
-it('keeps successful responses untouched in custom http error middleware', function (): void {
+it('keeps successful responses untouched by token obfuscation', function (): void {
     $history = [];
 
-    $client = makeClientWithHttpErrorsMiddleware([
+    $client = makeClientWithTokenObfuscation([
         telegramResponse([
             'ok' => true,
             'result' => [],
@@ -512,7 +507,7 @@ it('keeps successful responses untouched in custom http error middleware', funct
 it('bypasses http error conversion when request options disable http_errors', function (): void {
     $history = [];
 
-    $client = makeClientWithHttpErrorsMiddleware([
+    $client = makeClientWithTokenObfuscation([
         telegramResponse([
             'ok' => true,
             'result' => [],
@@ -528,7 +523,7 @@ it('bypasses http error conversion when request options disable http_errors', fu
 it('obfuscates token in connect exception messages', function (): void {
     $history = [];
 
-    $client = makeClientWithHttpErrorsMiddleware([
+    $client = makeClientWithTokenObfuscation([
         new ConnectException(
             'Connection error for https://api.telegram.org/bot123456:SECRET_TOKEN/getMe',
             new Request('GET', 'https://api.telegram.org/bot123456:SECRET_TOKEN/getMe'),
@@ -546,10 +541,31 @@ it('obfuscates token in connect exception messages', function (): void {
     }
 });
 
-it('rethrows non-connect exceptions from the http error middleware', function (): void {
+it('obfuscates token in network timeout exception messages', function (): void {
     $history = [];
 
-    $client = makeClientWithHttpErrorsMiddleware([
+    $client = makeClientWithTokenObfuscation([
+        new NetworkTimeoutException(
+            'cURL error 28: Operation timed out after 5001 milliseconds with 0 bytes received for https://api.telegram.org/bot123456:SECRET_TOKEN/getUpdates',
+            new Request('POST', 'https://api.telegram.org/bot123456:SECRET_TOKEN/getUpdates'),
+        ),
+    ], $history);
+
+    try {
+        $client->getUpdates()->wait();
+
+        expect()->fail('Expected a network timeout exception.');
+    } catch (NetworkTimeoutException $exception) {
+        expect($exception->getMessage())
+            ->toContain('/bot**********/getUpdates')
+            ->not->toContain('SECRET_TOKEN');
+    }
+})->skip(!class_exists(NetworkTimeoutException::class), 'Requires Guzzle 8.');
+
+it('passes failures without a token through unchanged', function (): void {
+    $history = [];
+
+    $client = makeClientWithTokenObfuscation([
         new RuntimeException('unexpected transport failure'),
     ], $history);
 
@@ -610,6 +626,8 @@ it('invokes extendHandlerStack so subclasses can push extra middleware', functio
     };
 
     expect($client->hookInvoked)->toBeTrue()
-        ->and($client->capturedStack)->not->toBeNull()
-        ->and((string)$client->capturedStack)->toContain('subclass_marker');
+        ->and($client->capturedStack)->toBeInstanceOf(HandlerStack::class)
+        // before() throws for unknown middleware names.
+        ->and(fn () => $client->capturedStack?->before('subclass_marker', static fn (callable $handler): callable => $handler))
+        ->not->toThrow(InvalidArgumentException::class);
 });

@@ -9,3 +9,5 @@ parameters:
         - src
     tmpDir: cache
     treatPhpDocTypesAsCertain: false
+    # Guzzle version specific ignores only match against some supported majors.
+    reportUnmatchedIgnoredErrors: false

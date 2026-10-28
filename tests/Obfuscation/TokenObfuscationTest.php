@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use PoorPlebs\GuzzleObfuscatedFormatter\GuzzleHttp\ObfuscatedMessageFormatter;
 use PoorPlebs\TelegramBotSdk\Obfuscator\TelegramBotTokenObfuscator;
-use PoorPlebs\TelegramBotSdk\TelegramBot\GuzzleHttp\Exception\RequestException;
+use PoorPlebs\TelegramBotSdk\TelegramBot\GuzzleHttp\TokenObfuscationMiddleware;
 
-covers(TelegramBotTokenObfuscator::class, RequestException::class);
+covers(TelegramBotTokenObfuscator::class, TokenObfuscationMiddleware::class);
 
 it('obfuscates telegram bot token strings', function (): void {
     $obfuscator = new TelegramBotTokenObfuscator();
@@ -41,7 +43,7 @@ it('obfuscates token and selected body fields in formatted request logs', functi
         ->not->toContain('"chat_id": 123456');
 });
 
-it('obfuscates bot token in custom request exception message', function (): void {
+it('obfuscates bot token in request exception messages', function (): void {
     $request = new Request(
         'POST',
         'https://api.telegram.org/bot123456:SUPER_SECRET/sendMessage',
@@ -55,7 +57,29 @@ it('obfuscates bot token in custom request exception message', function (): void
 
     $exception = RequestException::create($request, $response);
 
-    expect($exception->getMessage())
+    expect(TokenObfuscationMiddleware::obfuscate($exception))->toBe($exception)
+        ->and($exception)->toBeInstanceOf(ClientException::class)
+        ->and($exception->getResponse())->toBe($response)
+        ->and($exception->getMessage())
         ->toContain('/bot**********/sendMessage')
         ->not->toContain('SUPER_SECRET');
+});
+
+it('obfuscates bot token along the previous exception chain', function (): void {
+    $previous = new Error('Failed to open https://api.telegram.org/bot123456:SUPER_SECRET/getMe');
+    $exception = new RuntimeException('Request to /bot123456:SUPER_SECRET/getMe failed', 7, $previous);
+
+    TokenObfuscationMiddleware::obfuscate($exception);
+
+    expect($exception->getMessage())->toBe('Request to /bot**********/getMe failed')
+        ->and($exception->getCode())->toBe(7)
+        ->and($exception->getPrevious())->toBe($previous)
+        ->and($previous->getMessage())->toBe('Failed to open https://api.telegram.org/bot**********/getMe');
+});
+
+it('leaves messages without a bot token untouched', function (): void {
+    $exception = new RuntimeException('unexpected transport failure');
+
+    expect(TokenObfuscationMiddleware::obfuscate($exception)->getMessage())
+        ->toBe('unexpected transport failure');
 });
